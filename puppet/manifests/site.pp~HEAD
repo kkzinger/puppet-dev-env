@@ -1,0 +1,238 @@
+$config_branch = 'devel'
+
+ 
+node 'logstash.katzinger.info' {
+	
+	$logstash_config_hash = {
+		'LS_CONF_DIR' => '/etc/logstash/conf.d/',
+ 		'LS_USER'     => 'logstash',
+  		'LS_GROUP'    => 'logstash',
+	}
+
+	class { 'java':
+		distribution => 'jdk',  
+	}
+	class { 'logstash': 
+		package_url   => 'https://download.elastic.co/logstash/logstash/packages/centos/logstash-1.5.4-1.noarch.rpm',   
+		init_defaults => $logstash_config_hash,
+		require       => Class[java],
+	}
+#firewalld module from crayfishx bzw fork für firewalld_port resource nicht funktionsfähig
+#	firewalld_port {'accept_9999_tcp':
+#		ensure => present,
+#		zone =>  'public',
+#		port => {
+#			'port' => 9999,
+#			'protocol' => 'tcp',
+#		},
+#		require => Vcsrepo['/etc/puppetlabs/puppet/environments/production/modules/puppet-firewalld/'],
+#	}	
+	
+	package { 'git':
+		ensure => installed,
+	}
+
+#	vcsrepo { '/etc/puppetlabs/puppet/environments/production/modules/puppet-firewalld/':
+#	  ensure   => latest,
+#	  provider => git,
+#	  source   => 'https://github.com/ohnoitsyou/puppet-firewalld.git',
+#	  revision => 'firewalld_port',
+#	  require  => Package[git],
+#	}
+
+	vcsrepo { '/etc/logstash/conf.d/':
+	  ensure   => latest,
+	  provider => git,
+	  source   => 'https://its-git.fh-salzburg.ac.at/gkatzinger.its-b2013/bac1-logstash-config.git',
+	  revision => $config_branch,
+	  require  => Package[git],
+	}
+
+    vcsrepo { 'bashrc-files':
+      path     => "/home/vagrant/.bashrc-repo",
+	  ensure   => latest,
+	  provider => git,
+	  source   => 'https://its-git.fh-salzburg.ac.at/gkatzinger.its-b2013/bac1-bashrc.git',
+	  revision => $config_branch,
+	  require  => Package[git],
+	}
+    file { 'vagrant-bashrc-symlink':
+       path    => "/home/vagrant/.bashrc",
+       ensure  => link,
+       target  => '.bashrc-repo/.bashrc',
+       require => Vcsrepo['bashrc-files'],
+     }
+    file { 'root-bashrc-symlink':
+       path    => "/root/.bashrc",
+       ensure  => link,
+       target  => '/home/vagrant/.bashrc-repo/.bashrc',
+       require => Vcsrepo['bashrc-files'],
+     }
+
+
+	package { 'vim-enhanced':
+		ensure => installed,
+	}
+	package { 'tcpdump':
+		ensure => installed,
+	}
+
+	package { 'zeromq-devel':
+		ensure  => installed,
+		require => Class['epel']
+	}
+
+
+	include epel
+
+}
+
+node 'datasource.katzinger.info' {
+
+	package { 'vim-enhanced':
+		ensure => installed,
+	}
+	
+	package { 'tcpdump':
+		ensure => installed,
+	}
+
+	include epel
+
+	package { 'git':
+		ensure => installed,
+	}
+
+	package {'syslog-ng':
+		ensure  => installed,
+		require => Class['epel'],
+	}
+
+	package {'nmap-ncat':
+		ensure  => installed,
+		require => Class['epel'],
+	}
+
+	package {'python-zmq':
+		ensure  => installed,
+		require => Class['epel'],
+	}
+
+
+	vcsrepo { '/etc/syslog-ng/conf.d/':
+		  ensure   => latest,
+		  provider => git,
+		  source   => 'https://its-git.fh-salzburg.ac.at/gkatzinger.its-b2013/bac1-syslogng-config.git',
+		  revision => $config_branch,
+		  require  => Package[git],
+		}
+
+	vcsrepo { '/opt/zmq-bash-push':
+		  ensure   => latest,
+		  provider => git,
+		  source   => 'https://its-git.fh-salzburg.ac.at/ggruenwald.its-b2012/bac1-zeromqtest.git',
+		  revision => $config_branch,
+		  require  => Package[git],
+		}
+     vcsrepo { 'bashrc-files':
+      path     => "/home/vagrant/.bashrc-repo",
+	  ensure   => latest,
+	  provider => git,
+	  source   => 'https://its-git.fh-salzburg.ac.at/gkatzinger.its-b2013/bac1-bashrc.git',
+	  revision => $config_branch,
+	  require  => Package[git],
+	}
+    file { 'vagrant-bashrc-symlink':
+       path    => "/home/vagrant/.bashrc",
+       ensure  => link,
+       target  => '.bashrc-repo/.bashrc',
+       require => Vcsrepo['bashrc-files'],
+     }
+    file { 'root-bashrc-symlink':
+       path    => "/root/.bashrc",
+       ensure  => link,
+       target  => '/home/vagrant/.bashrc-repo/.bashrc',
+       require => Vcsrepo['bashrc-files'],
+     }
+}
+
+node 'flume.katzinger.info' {
+
+	package { 'vim-enhanced':
+		ensure => installed,
+	}
+	
+	package { 'tcpdump':
+		ensure => installed,
+	}
+
+	include epel
+
+	package { 'git':
+		ensure => installed,
+	}
+
+	package {'nmap-ncat':
+		ensure  => installed,
+		require => Class['epel'],
+	}
+
+	package {'telnet':
+		ensure  => installed,
+		require => Class['epel'],
+	}
+
+
+     vcsrepo { 'bashrc-files':
+      path     => "/home/vagrant/.bashrc-repo",
+	  ensure   => latest,
+	  provider => git,
+	  source   => 'https://its-git.fh-salzburg.ac.at/gkatzinger.its-b2013/bac1-bashrc.git',
+	  revision => $config_branch,
+	  require  => Package[git],
+	}
+
+	vcsrepo { '/etc/flume/conf/':
+	  ensure   => latest,
+	  provider => git,
+	  source   => 'https://its-git.fh-salzburg.ac.at/gkatzinger.its-b2013/bac1-flume-config.git',
+	  revision => $config_branch,
+	  require  => Package[git],
+	}
+
+    file { 'vagrant-bashrc-symlink':
+       path    => "/home/vagrant/.bashrc",
+       ensure  => link,
+       target  => '.bashrc-repo/.bashrc',
+       require => Vcsrepo['bashrc-files'],
+    }
+    file { 'root-bashrc-symlink':
+       path    => "/root/.bashrc",
+       ensure  => link,
+       target  => '/home/vagrant/.bashrc-repo/.bashrc',
+       require => Vcsrepo['bashrc-files'],
+    }
+
+    class { 'java':
+		distribution => 'jdk',  
+	}
+
+    exec { 'bigtop-repo':
+        path    => '/usr/bin:/usr/sbin:/bin',
+        command => 'wget -O /etc/yum.repos.d/bigtop.repo https://www.apache.org/dist/bigtop/bigtop-1.0.0/repos/centos7/bigtop.repo',
+        creates => '/etc/yum.repos.d/bigtop.repo',
+    }           
+    
+   	package { 'flume-agent':
+		ensure  => installed,
+		require => Exec['bigtop-repo'],
+	}
+
+
+#    class {'flume_ng':
+#     flume_home      => '/opt/flume-ng',
+#     flume_version   => '1.6.0',
+#     flume_logs_dir  => '/var/log/flume-ng',
+#     require         => Class['java']
+#    }
+} 

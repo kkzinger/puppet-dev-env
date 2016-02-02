@@ -1,0 +1,29 @@
+#r10k config file, describes which modules will be cloned into vagrant environment
+ 
+mod 'puppetlabs-vcsrepo',
+  :git    => 'https://github.com/puppetlabs/puppetlabs-vcsrepo.git',
+  :branch => 'master'
+
+mod 'puppetlabs-stdlib',
+  :git    => 'https://github.com/puppetlabs/puppetlabs-stdlib.git',
+  :branch => 'master'
+
+mod 'file_concat',
+  :git    => 'https://github.com/electrical/puppet-lib-file_concat.git',
+  :branch => 'master'
+
+mod 'puppetlabs-java',
+  :git    => 'https://github.com/puppetlabs/puppetlabs-java.git',
+  :branch => 'master'
+
+mod 'stahnma-epel',
+  :git    => 'https://github.com/stahnma/puppet-module-epel',
+  :branch => 'master'
+
+mod 'elasticsearch-logstash',
+  :git    => 'https://github.com/elastic/puppet-logstash.git',
+  :branch => 'master'
+
+mod 'flume_ng',
+  :git    => 'https://github.com/kkzinger/puppet-flume-ng',
+  :branch => 'master'
